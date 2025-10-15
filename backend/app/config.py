@@ -12,4 +12,8 @@ REDDIT_USER_AGENT = os.getenv(
 if not all([REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT]):
     raise ValueError("Missing Reddit API credentials. Check your .env file.")
 
+FINNHUB_API_KEY = os.getenv("FINNHUB_API_KEY")
+if not FINNHUB_API_KEY:
+    raise ValueError("Missing Finnhub API key. Check your .env file.")
+
 # You can add more API keys here later (e.g., Finnhub, DB URL, etc.)

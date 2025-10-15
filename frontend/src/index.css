@@ -1,0 +1,237 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #1a1d24; /* Dark blue tint */
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+}
+
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-header {
+  background-color: #242424;
+  padding: 0 2rem;
+  border-bottom: 1px solid #3a3a3a;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 60px;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.main-nav {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.main-nav a {
+  color: #aaa;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 20px 0;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.main-nav a:hover {
+  color: white;
+}
+
+.main-nav a.active {
+  color: white;
+  border-bottom-color: #8884d8;
+}
+
+.disabled-link {
+  color: #555 !important;
+  cursor: not-allowed;
+}
+
+.main-content {
+  flex-grow: 1;
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.app-footer {
+  background-color: #242424;
+  padding: 1rem 2rem;
+  border-top: 1px solid #3a3a3a;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.report-container {
+  width: 100%;
+  max-width: 1200px; /* Wider to accommodate more columns */
+  text-align: center;
+}
+
+.controls {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.controls select, .controls button {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #555;
+  background-color: #333;
+  color: white;
+  cursor: pointer;
+}
+
+.controls button:hover {
+  background-color: #444;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.5rem;
+  font-size: 0.95rem;
+}
+
+th, td {
+  border-bottom: 1px solid #3a3a3a; /* Only bottom borders for a cleaner look */
+  padding: 0.75rem;
+  text-align: left;
+}
+
+th {
+  background-color: transparent;
+  color: #aaa;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+
+tbody tr:hover {
+  background-color: #2a2a2a;
+}
+
+.clickable-row {
+  cursor: pointer;
+}
+
+/* About Page Styles */
+.about-container {
+  max-width: 800px;
+  text-align: left;
+  line-height: 1.7;
+}
+
+.about-container h2 {
+  border-bottom: 1px solid #3a3a3a;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.about-container h3 {
+  margin-top: 2rem;
+}
+
+.github-link {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  background-color: #8884d8;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+/* Ticker Detail Page Styles */
+.ticker-details-container {
+  width: 100%;
+  max-width: 900px;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 1.5rem;
+  color: #8884d8;
+  text-decoration: none;
+}
+
+.ticker-header {
+  margin-bottom: 2rem;
+}
+
+.ticker-header h1 {
+  margin: 0;
+}
+
+.quote-header {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.current-price {
+  font-size: 2.5rem;
+  font-weight: 600;
+}
+
+.price-change.positive {
+  color: #4caf50;
+}
+
+.price-change.negative {
+  color: #f44336;
+}
+
+.chart-container {
+  margin-bottom: 2rem;
+}
+
+.financials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.metric-box {
+  background-color: #242424;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #3a3a3a;
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-label {
+  font-size: 0.8rem;
+  color: #aaa;
+  margin-bottom: 0.5rem;
+}
+
+.metric-value {
+  font-size: 1.2rem;
+  font-weight: 600;
+}

@@ -11,12 +11,16 @@ Intended functionality:
 - To be extended later for scheduled automatic updates
 """
 
+# Use 'python -m app.services.reddit_fetcher' for isolated test
+
 import praw
 import csv
 import os
 from datetime import datetime
 from app.config import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT
-
+from ..services.db_writer import insert_posts
+from ..analysis.tickers import get_ticker_search_query
+from ..database import Base, engine
 
 def get_reddit_client(): # Initialize and return a reddit client.
     reddit = praw.Reddit(
@@ -26,69 +30,89 @@ def get_reddit_client(): # Initialize and return a reddit client.
     )
     return reddit
 
+def _fetch_comment_tree(comment_forest, parent_id=None, limit_per_level=5):
+    """Recursively fetch comments and their replies."""
+    comments_data = []
+    comment_forest.replace_more(limit=0) # Expand "load more comments"
+    
+    count = 0
+    for comment in comment_forest:
+        if count >= limit_per_level:
+            break
+        comments_data.append({
+            "id": comment.id,
+            "author": str(comment.author),
+            "body": comment.body,
+            "upvotes": comment.score,
+            "parent_id": parent_id
+        })
+        # Recursively fetch replies to this comment
+        comments_data.extend(_fetch_comment_tree(comment.replies, parent_id=comment.id, limit_per_level=2))
+        count += 1
+    return comments_data
 
-def fetch_posts(subreddits, limit=10, include_comments=True): # Fetches a list of recent posts from a list of subreddits.
+def fetch_posts(subreddit_config, limit=10, include_comments=True): # Fetches posts based on subreddit configuration.
     reddit = get_reddit_client()
     results = []
+    search_query = get_ticker_search_query()
 
-    for sub in subreddits:
-        subreddit = reddit.subreddit(sub)
-        print(f"Fetching from r/{sub}...")
-        for post in subreddit.new(limit=limit):
-            post_data = {
-                "id": post.id,
-                "subreddit": sub,
-                "title": post.title,
-                "author": str(post.author),
-                "url": post.url,
-                "created_utc": datetime.utcfromtimestamp(post.created_utc).isoformat(),
-                "upvotes": post.score,
-                "num_comments": post.num_comments,
-                "selftext": post.selftext,
-            }
+    for region, configs in subreddit_config.items():
+        for config in configs:
+            sub_name = config["name"]
+            fetch_type = config["type"]
+            subreddit = reddit.subreddit(sub_name)
+            
+            post_iterator = []
+            if fetch_type == "firehose":
+                print(f"Fetching all new posts from r/{sub_name} (Region: {region})...")
+                post_iterator = subreddit.new(limit=limit)
+            elif fetch_type == "search":
+                print(f"Searching for ticker mentions in r/{sub_name} (Region: {region})...")
+                post_iterator = subreddit.search(search_query, sort="new", limit=limit)
 
-            # Optionally fetch top-level comments
-            if include_comments:
-                post.comments.replace_more(limit=0)
-                comments = []
-                for comment in post.comments[:5]:  # limit to 5 comments
-                    comments.append({
-                        "author": str(comment.author),
-                        "body": comment.body,
-                        "upvotes": comment.score,
-                    })
-                post_data["comments"] = comments
-
-            results.append(post_data)
-
+            for post in post_iterator:
+                post_data = {
+                    "id": post.id,
+                    "subreddit": sub_name,
+                    "region": region,
+                    "title": post.title,
+                    "author": str(post.author),
+                    "url": post.url,
+                    "created_utc": datetime.utcfromtimestamp(post.created_utc).isoformat(),
+                    "upvotes": post.score,
+                    "num_comments": post.num_comments,
+                    "selftext": post.selftext,
+                }
+    
+                # Optionally fetch top-level comments
+                if include_comments:
+                    post_data["comments"] = _fetch_comment_tree(post.comments, limit_per_level=5)
+    
+                results.append(post_data)
+    
     return results
 
 
-def save_to_csv(data, filename="reddit_posts.csv"):
-    if not data:
-        print("No data to save.")
-        return
-
-    keys = ["id", "subreddit", "title", "author", "url", "created_utc", "upvotes", "num_comments", "selftext"]
-    with open(filename, "w", encoding="utf-8", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=keys)
-        writer.writeheader()
-        for post in data:
-            writer.writerow({k: post.get(k, "") for k in keys})
-    print(f"Saved {len(data)} posts to {filename}")
-
-
 # -------------------------                 Connect to reddit using your credentials
-# Functional Test Section                   Fetch posts from r/stocks and r/wallstreetbets
-# -------------------------                 Save results to reddit_posts.csv in current directory
-if __name__ == "__main__": 
-    subreddits = ["stocks", "wallstreetbets"]
-    posts = fetch_posts(subreddits, limit=5)
-    save_to_csv(posts, "reddit_posts.csv")
+# Main execution block                      Fetch posts and store in the database
+# -------------------------
+if __name__ == "__main__":
+    print("Initializing database...")
+    Base.metadata.create_all(bind=engine)
 
-    print("\nExample post:")
-    if posts:
-        example = posts[0]
-        print(f"Title: {example['title']}")
-        print(f"Subreddit: {example['subreddit']}")
-        print(f"Comments: {len(example.get('comments', []))}")
+    # Define subreddit configurations: 'firehose' for all new, 'search' for ticker-specific.
+    subreddit_config = {
+        "US": [
+            {"name": "stocks", "type": "firehose"},
+            {"name": "wallstreetbets", "type": "firehose"}
+        ],
+        "NO": [
+            {"name": "TollbugataBets", "type": "firehose"},
+            {"name": "norge", "type": "search"} # Only fetch posts mentioning tickers
+        ]
+    }
+
+    print(f"Fetching posts...")
+    posts_to_insert = fetch_posts(subreddit_config, limit=20, include_comments=True)
+    insert_posts(posts_to_insert)
+    print("\nProcess finished.")

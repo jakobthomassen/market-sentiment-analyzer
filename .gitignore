@@ -1,4 +1,45 @@
+# ===================================================================
+# General
+# ===================================================================
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# IDE configuration files
+.vscode/
+.idea/
+
+# ===================================================================
+# Python / Backend
+# ===================================================================
 .env
-*.csv
+
+# Python cache
 __pycache__/
 *.pyc
+
+# Virtual environments
+venv/
+env/
+
+# Generated database files
+/data/
+*.db
+*.db-journal
+
+# ===================================================================
+# Node.js / Frontend
+# ===================================================================
+# Dependencies
+**/node_modules/
+
+# Build output
+/frontend/dist/
+
+# Vite cache
+/frontend/.vite/
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
