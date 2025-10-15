@@ -10,6 +10,7 @@ function Header() {
       <nav className="main-nav">
         <NavLink to="/">Dashboard</NavLink>
         <NavLink to="/about">About</NavLink>
+        <NavLink to="/dev">Dev</NavLink>
         {/* A placeholder for a future feature */}
         <a href="#" className="disabled-link" onClick={(e) => e.preventDefault()}>Live Feed</a>
       </nav>

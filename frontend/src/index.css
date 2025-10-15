@@ -1,11 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600&display=swap');
+
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Roboto Mono', monospace, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #1a1d24; /* Dark blue tint */
+  /* Add a subtle radial gradient for depth */
+  background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -58,7 +61,7 @@ body {
 
 .main-nav a.active {
   color: white;
-  border-bottom-color: #8884d8;
+  border-bottom-color: #00c2c7; /* New accent color */
 }
 
 .disabled-link {
@@ -84,28 +87,15 @@ body {
 
 .report-container {
   width: 100%;
-  max-width: 1200px; /* Wider to accommodate more columns */
+  max-width: 1400px; /* Give the table more space */
   text-align: center;
 }
 
 .controls {
   display: flex;
   gap: 1rem;
-  justify-content: center;
+  justify-content: flex-end; /* Move filter to the right */
   margin-bottom: 1.5rem;
-}
-
-.controls select, .controls button {
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  border: 1px solid #555;
-  background-color: #333;
-  color: white;
-  cursor: pointer;
-}
-
-.controls button:hover {
-  background-color: #444;
 }
 
 table {
@@ -117,7 +107,7 @@ table {
 
 th, td {
   border-bottom: 1px solid #3a3a3a; /* Only bottom borders for a cleaner look */
-  padding: 0.75rem;
+  padding: 1rem; /* Increase padding for more breathing room */
   text-align: left;
 }
 
@@ -128,6 +118,69 @@ th {
   text-transform: uppercase;
   font-size: 0.8rem;
 }
+
+th.sortable-header {
+  cursor: pointer;
+  user-select: none;
+}
+
+th.sortable-header:hover {
+  color: white;
+}
+
+/* Multi-select filter styles */
+.multiselect-filter {
+  position: relative;
+  display: inline-block;
+}
+
+.filter-notice {
+  font-size: 0.75rem;
+  color: #888;
+  margin-top: 0.5rem;
+  text-align: right;
+}
+
+.filter-button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(42, 42, 42, 0.5); /* Semi-transparent background */
+  backdrop-filter: blur(10px); /* The blur effect */
+  -webkit-backdrop-filter: blur(10px); /* For Safari */
+  color: white;
+  cursor: pointer;
+  font-size: 1rem;
+  font-family: inherit;
+  min-width: 250px; /* Make the button wider */
+  transition: background 0.2s ease;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 6px;
+  z-index: 1000;
+  min-width: 200px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.dropdown-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dropdown-item:hover {
+  background-color: #3a3a3a;
+}
+
 
 tbody tr:hover {
   background-color: #2a2a2a;
@@ -157,12 +210,52 @@ tbody tr:hover {
 .github-link {
   display: inline-block;
   margin-top: 1rem;
-  padding: 0.75rem 1.5rem;
-  background-color: #8884d8;
+  padding: 0.6rem 1.2rem;
+  background-color: #00c2c7; /* New accent color */
   color: white;
   text-decoration: none;
   border-radius: 6px;
   font-weight: 500;
+}
+
+/* Dev Page Styles */
+.dev-container {
+  max-width: 800px;
+  text-align: left;
+}
+
+.dev-container p {
+  color: #aaa;
+  margin-bottom: 2rem;
+}
+
+.dev-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.dev-controls button:disabled {
+  background-color: #2a2a2a;
+  color: #666;
+  cursor: not-allowed;
+  border-color: #444;
+}
+
+.output-window-container h3 {
+  margin-bottom: 0.5rem;
+  color: #aaa;
+}
+
+.output-window {
+  background-color: #0e1015;
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+  padding: 1rem;
+  min-height: 200px;
+  white-space: pre-wrap; /* Allows text to wrap */
+  word-wrap: break-word;
 }
 
 /* Ticker Detail Page Styles */
@@ -174,7 +267,7 @@ tbody tr:hover {
 .back-link {
   display: inline-block;
   margin-bottom: 1.5rem;
-  color: #8884d8;
+  color: #00c2c7; /* New accent color */
   text-decoration: none;
 }
 

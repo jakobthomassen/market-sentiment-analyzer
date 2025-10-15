@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { MultiSelectFilter } from './MultiSelectFilter';
+
+// A simple component to render a flag emoji
+const Flag = ({ region }) => {
+  if (region === 'US') return <span role="img" aria-label="USA Flag">🇺🇸</span>;
+  if (region === 'NO') return <span role="img" aria-label="Norway Flag">🇳🇴</span>;
+  return null;
+};
 
 // The URL where our FastAPI backend is running.
 const API_BASE_URL = 'http://localhost:8000/api';
@@ -12,7 +20,7 @@ function Report() {
 
   // State for UI controls
   const [subreddits, setSubreddits] = useState([]);
-  const [selectedSubreddit, setSelectedSubreddit] = useState('');
+  const [selectedSubreddits, setSelectedSubreddits] = useState([]);
   const [sortBy, setSortBy] = useState('mentions');
   const [order, setOrder] = useState('desc');
 
@@ -41,8 +49,8 @@ function Report() {
         sort_by: sortBy,
         order: order,
       });
-      if (selectedSubreddit) {
-        params.append('subreddit', selectedSubreddit);
+      if (selectedSubreddits.length > 0) {
+        selectedSubreddits.forEach(sub => params.append('subreddit', sub));
       }
 
       const url = `${API_BASE_URL}/report?${params.toString()}`;
@@ -63,57 +71,64 @@ function Report() {
     };
 
     fetchReportData();
-  }, [selectedSubreddit, sortBy, order]); // Re-run this effect when any of these values change
+  }, [selectedSubreddits, sortBy, order]); // Re-run this effect when any of these values change
 
   const handleRowClick = (ticker) => {
     navigate(`/ticker/${ticker}`);
+  };
+
+  const handleSort = (newSortBy) => {
+    const newOrder = sortBy === newSortBy && order === 'desc' ? 'asc' : 'desc';
+    setSortBy(newSortBy);
+    setOrder(newOrder);
+  };
+
+  const SortableHeader = ({ title, sortKey }) => {
+    const isSorting = sortBy === sortKey;
+    const arrow = isSorting ? (order === 'desc' ? '▼' : '▲') : '';
+    return (
+      <th onClick={() => handleSort(sortKey)} className="sortable-header">
+        {title} {arrow}
+      </th>
+    );
   };
 
   return (
     <div className="report-container">
       <h1>Ticker Sentiment Report</h1>
       <div className="controls">
-        <select value={selectedSubreddit} onChange={(e) => setSelectedSubreddit(e.target.value)}>
-          <option value="">All Subreddits</option>
-          {subreddits.map(sub => <option key={sub} value={sub}>{sub}</option>)}
-        </select>
-        <button onClick={() => {
-          // If already sorting by mentions, flip order. Otherwise, sort descending.
-          const newOrder = sortBy === 'mentions' && order === 'desc' ? 'asc' : 'desc';
-          setSortBy('mentions');
-          setOrder(newOrder);
-        }}>Sort by Mentions</button>
-        <button onClick={() => {
-          // If already sorting by sentiment, flip order. Otherwise, sort descending.
-          const newOrder = sortBy === 'sentiment' && order === 'desc' ? 'asc' : 'desc';
-          setSortBy('sentiment');
-          setOrder(newOrder);
-        }}>Sort by Sentiment</button>
+        <MultiSelectFilter
+          options={subreddits}
+          selectedOptions={selectedSubreddits}
+          onChange={setSelectedSubreddits}
+        />
       </div>
       <table>
         <thead>
           <tr>
             <th style={{ width: '10%' }}>Ticker</th>
             <th style={{ width: '25%' }}>Name</th>
-            <th style={{ width: '10%' }}>Mentions</th>
-            <th style={{ width: '15%' }}>Sentiment</th>
-            <th style={{ width: '15%' }}>Price</th>
-            <th style={{ width: '15%' }}>Change</th>
+            <SortableHeader title="Mentions" sortKey="mentions" />
+            <SortableHeader title="Sentiment" sortKey="sentiment" />
+            <SortableHeader title="Price" sortKey="price" />
+            <SortableHeader title="Change" sortKey="change" />
             <th style={{ width: '10%' }}>Day High</th>
             <th style={{ width: '10%' }}>Day Low</th>
           </tr>
         </thead>
         <tbody>
           {loading ? (
-            <tr><td colSpan="3">Loading report...</td></tr>
+            <tr><td colSpan="8">Loading report...</td></tr>
           ) : error ? (
-            <tr><td colSpan="3" style={{ color: 'red' }}>{error}</td></tr>
+            <tr><td colSpan="8" style={{ color: 'red' }}>{error}</td></tr>
           ) : reportData.length === 0 ? (
-            <tr><td colSpan="3">No data found for the selected filters.</td></tr>
+            <tr><td colSpan="8">No data found for the selected filters.</td></tr>
           ) : (
             reportData.map((item) => (
-              <tr key={item.ticker} onClick={() => handleRowClick(item.ticker)} className="clickable-row">
-                <td><strong>{item.ticker}</strong></td>
+              <tr key={`${item.ticker}-${item.region}`} onClick={() => handleRowClick(item.ticker)} className="clickable-row">
+                <td>
+                  <Flag region={item.region} /> <strong>{item.ticker}</strong>
+                </td>
                 <td>{item.name || 'N/A'}</td>
                 <td style={{ textAlign: 'center' }}>{item.mentions}</td>
                 <td style={{ color: item.avg_sentiment > 0 ? '#4caf50' : '#f44336' }}>

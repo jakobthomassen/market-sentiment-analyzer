@@ -5,6 +5,7 @@ import Footer from './Footer';
 import Report from './Report';
 import TickerPage from './TickerPage';
 import AboutPage from './AboutPage';
+import DevPage from './DevPage';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Report />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/dev" element={<DevPage />} />
           <Route path="/ticker/:tickerSymbol" element={<TickerPage />} />
         </Routes>
       </main>

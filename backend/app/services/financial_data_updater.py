@@ -20,13 +20,20 @@ def update_all_ticker_data():
     staleness_threshold = datetime.utcnow() - timedelta(hours=4)
 
     try:
-        # Get all unique tickers mentioned in our database
-        tickers_in_db = session.query(RedditComment.ticker_symbol).filter(RedditComment.ticker_symbol != None).distinct().all()
-        unique_tickers = {row[0] for row in tickers_in_db}
+        # Get all unique US tickers mentioned in our database
+        tickers_in_db = session.query(RedditComment.ticker_symbol).filter(
+            RedditComment.ticker_symbol != None,
+            RedditComment.region == 'US'
+        ).distinct().all()
+        us_tickers = {row[0] for row in tickers_in_db}
 
-        print(f"Found {len(unique_tickers)} unique tickers. Checking for stale financial data...")
+        print(f"Found {len(us_tickers)} unique US tickers. Checking for stale financial data...")
 
-        for ticker in unique_tickers:
+        if not us_tickers:
+            print("No US tickers found to update.")
+            return
+
+        for ticker in us_tickers:
             try:
                 existing_data = session.get(TickerData, ticker)
                 # If data exists and is fresh, skip the update for this ticker

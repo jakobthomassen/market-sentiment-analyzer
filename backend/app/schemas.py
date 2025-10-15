@@ -8,6 +8,7 @@ from typing import List, Optional
 
 class ReportRow(BaseModel):
     ticker: str
+    region: str
     name: Optional[str]
     mentions: int
     avg_sentiment: float

@@ -30,9 +30,11 @@ def insert_posts(posts):
             
             sentiment_score = None
             ticker_symbol = None
+            # The post's region defaults to the subreddit's region, but can be overridden by a ticker.
+            post_region = post_data["region"]
             if found_tickers:
+                ticker_symbol, post_region = found_tickers[0] # (ticker, region)
                 sentiment_score = analyze_sentiment(post_text_to_analyze)
-                ticker_symbol = next(iter(found_tickers)) # Store the first ticker found
 
             if existing_post:
                 # Update existing post's metrics
@@ -53,11 +55,13 @@ def insert_posts(posts):
                         comment_tickers = extract_tickers(c_data["body"])
                         comment_sentiment = None
                         comment_ticker_symbol = None
+                        comment_region = existing_post.region # Default to post's region
 
                         if comment_tickers:
-                            comment_ticker_symbol = next(iter(comment_tickers))
+                            comment_ticker_symbol, comment_region = comment_tickers[0]
                             comment_sentiment = analyze_sentiment(c_data["body"])
                         elif existing_post.ticker_symbol:
+                            # Inherit ticker and region from post if comment has no ticker
                             comment_ticker_symbol = existing_post.ticker_symbol
                             comment_sentiment = analyze_sentiment(c_data["body"])
 
@@ -68,19 +72,20 @@ def insert_posts(posts):
                             body=c_data["body"],
                             upvotes=c_data["upvotes"],
                             parent_id=c_data.get("parent_id"),
-                            region=existing_post.region, # Inherit region from post
+                            region=comment_region,
                             post=existing_post,
                             sentiment_score=comment_sentiment,
                             ticker_symbol=comment_ticker_symbol,
                         )
-                        session.add(new_comment)
+                        existing_post.comments.append(new_comment)
+                session.add(existing_post)
                 updated_count += 1
             else:
                 # Insert new post
                 new_post = RedditPost(
                     id=post_data["id"],
                     subreddit=post_data["subreddit"],
-                    region=post_data["region"],
+                    region=post_region,
                     title=post_data["title"],
                     author=post_data["author"],
                     url=post_data["url"],
@@ -99,15 +104,16 @@ def insert_posts(posts):
                     comment_tickers = extract_tickers(c_data["body"])
                     comment_sentiment = None
                     comment_ticker_symbol = None
+                    comment_region = post_region # Default to post's region
 
                     if comment_tickers:
-                        comment_ticker_symbol = next(iter(comment_tickers))
+                        comment_ticker_symbol, comment_region = comment_tickers[0]
                         comment_sentiment = analyze_sentiment(c_data["body"])
                     elif ticker_symbol: # Inherit from the new post
                         comment_ticker_symbol = ticker_symbol
                         comment_sentiment = analyze_sentiment(c_data["body"])
 
-                    comment = RedditComment(id=c_data["id"], author=c_data["author"], body=c_data["body"], upvotes=c_data["upvotes"], sentiment_score=comment_sentiment, ticker_symbol=comment_ticker_symbol, region=post_data["region"])
+                    comment = RedditComment(id=c_data["id"], author=c_data["author"], body=c_data["body"], upvotes=c_data["upvotes"], sentiment_score=comment_sentiment, ticker_symbol=comment_ticker_symbol, region=comment_region)
                     comment_map[comment.id] = comment
 
                 # Establish relationships after creating all comment objects
